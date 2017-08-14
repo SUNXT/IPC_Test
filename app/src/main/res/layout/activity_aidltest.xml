@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.sunxuedian.ipc_test.AIDLTestActivity">
+    <EditText
+        android:id="@+id/et_book_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="输入书名"
+        />
+    <EditText
+        android:id="@+id/et_bool_price"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="输入书的价格"
+        android:inputType="number"/>
+    <Button
+        android:id="@+id/btn_add_book"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="向 remote_2进程 添加书"/>
+    <Button
+        android:id="@+id/btn_get_book_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="从 remote_2进程 获取添加的书列表"/>
+    <ListView
+        android:id="@+id/lv_book_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </ListView>
+</LinearLayout>
