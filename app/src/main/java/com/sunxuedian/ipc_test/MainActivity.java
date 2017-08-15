@@ -22,20 +22,14 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String Tag = "MainActivity";
 
+    /**
+     * 与服务端进行连接
+     */
     private Messenger mService;
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            mService = new Messenger(iBinder);
-//            Message msg = Message.obtain(null, MyConstants.MSG_FROM_CLIENT);
-//            Bundle data = new Bundle();
-//            data.putString(MyConstants.CLIENT_MSG, "这是从MainActivity线程中发送到MessengerService中的一条信息！");
-//            msg.setData(data);
-//            try {
-//                mService.send(msg);
-//            } catch (RemoteException e) {
-//                e.printStackTrace();
-//            }
+            mService = new Messenger(iBinder);//获取到服务端的Service
         }
 
         @Override
@@ -44,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    /**
+     * 接收服务端来的信息
+     */
     private Messenger mGetReplyMessenger = new Messenger(new MessengerHandler());
     private static class MessengerHandler extends Handler{
         @Override
@@ -62,8 +59,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //启动服务
         Intent intent = new Intent(MainActivity.this, MessengerService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        //向服务端发送消息
         findViewById(R.id.btn_ipc_messenger).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

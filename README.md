@@ -8,7 +8,7 @@
 ![image](https://github.com/SUNXT/IPC_Test/blob/master/所有进程间通讯的方法.jpg)
 
 ## 本项目主要从Messenger 和 AIDL 两个方法实现进程间通讯
-### 1. Messenger方法实现进程间通讯，实现简单的message通讯
+### 1. Messenger方法实现进程间通讯，实现简单的message通讯，使用Messenger实现进程间通讯，一般用的是用Message来进行信息交流，如果要传自定义对象数据的话，对象类必须得实现Parcelable接口
 #### 服务端的写法
 （1）新建一个MessengerService类继承于Service，在AndroidMenifest中声明该服务
 ```
@@ -116,3 +116,136 @@ private Messenger mService;
         });
 ```
 #### 这样就完成了使用Messenger来实现进程间通讯！
+
+### 2. 使用AIDL实现进程间通讯，其实上面的Messenger的底层也是AIDL，但是Messenger当遇到多个请求的话，只能串行处理，效率不高，而直接使用AIDL就可以并行处理。这个工程中主要通过在其他进程（非项目默认进程中）对自定义类Book的管理，通过客户端实现对服务端的书的管理，添加和查看书等操作，来演示进程间通讯。
+
+#### AIDL文件的编写（开发的IDE为Android Studio）
+（1）我们在src/main/java/包名 下新建一个包aidl（注意：这里一定要是aidl，不然后面构建项目会报找不到Book类，这里主要存放您要通过aidl通讯实现数据交换的自定义bean类），新建类Book.java，然后将该类实现Parcelable接口。
+（2）直接在src/main 新建一个aidl文件，系统将自动在main目录下生成一个aidl目录，在该目录下有一个包名为xxx.xxx.aidl（xxx.xxx代表你的包名），里面为你新建的aidl文件。我们先新建一个Book.aidl，该aidl文件的作用为声明我们自定义的Book.java类，然后我们新建一个IBookManager.aidl文件,里面编写接口方法getBookList()和addBook(Book book);注意的是，必须import Book类完整的路径包名。
+![image]()
+##### Book.aidl 用parcelable声明Book类
+```
+// Book.aidl
+package com.sunxuedian.ipc_test.aidl;
+
+// Declare any non-default types here with import statements
+parcelable Book;
+
+```
+##### IBookManager.aidl
+```
+// IBookManager.aidl
+package com.sunxuedian.ipc_test.aidl;
+
+// Declare any non-default types here with import statements
+import com.sunxuedian.ipc_test.aidl.Book;
+
+interface IBookManager {
+
+    List<Book> getBookList();
+    void addBook(in Book book);
+    /**
+     * Demonstrates some basic types that you can use as parameters
+     * and return values in AIDL.
+     */
+    void basicTypes(int anInt, long aLong, boolean aBoolean, float aFloat,
+            double aDouble, String aString);
+
+}
+```
+（3）构建你的项目，（Make Project）如果没问题的话，应该能构建成功，并在app/build/generated/source目录下找到aidl文件夹，并在aidl/debug中找到对应的包和你定义的IBookManager.java
+![image]()
+
+#### 可以开始编写客户端和服务端的代码了（兴奋）
+
+#### 先写服务端，和Messenger写法有点相似
+新建一个BookManagerService类继承于Service，在AndroidMenifest文件中声明为:remote_2进程，编写代码，新建一个Binder对象实现IBookManager.Stub接口
+```
+public class BookManagerService extends Service {
+
+    private CopyOnWriteArrayList<Book> mBookList = new CopyOnWriteArrayList<>();
+
+    private Binder mBinder = new IBookManager.Stub(){
+
+        @Override
+        public List<Book> getBookList() throws RemoteException {
+            return mBookList;
+        }
+
+        @Override
+        public void addBook(Book book) throws RemoteException {
+            mBookList.add(book);
+        }
+
+        @Override
+        public void basicTypes(int anInt, long aLong, boolean aBoolean, float aFloat, double aDouble, String aString) throws RemoteException {
+
+        }
+    };
+
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+}
+```
+#### 客户端的编写
+（1）声明一个IBookManager的对象mBookManager，在用ServiceConnection建立起连接的时候将IBinder对象通过IBookManager.Stub.asInterface(iBinder)赋值给mBookManager，代码如下
+```
+private IBookManager mBookManager;
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            mBookManager = IBookManager.Stub.asInterface(iBinder);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+
+        }
+    };
+```
+（2）bindService后，服务建立起连接，然后你就可以通过mBookManager来进行进程通讯了，可调用远端进程的服务接口方法 addBook(Book book) 和 getBookList()了
+```
+
+        //绑定服务
+        Intent intent = new Intent(this, BookManagerService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
+        //调用addBook接口
+        findViewById(R.id.btn_add_book).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText mEtName = (EditText) findViewById(R.id.et_book_name);
+                EditText mEtPrice = (EditText) findViewById(R.id.et_bool_price);
+                Book book = new Book(mEtName.getText().toString(), Integer.parseInt(mEtPrice.getText().toString()));
+                try {
+                    mBookManager.addBook(book);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        mLvBooks = (ListView) findViewById(R.id.lv_book_list);
+        mAdapter = new BookListAdapter(this);
+        mLvBooks.setAdapter(mAdapter);
+
+        //调用getBookList()接口
+        findViewById(R.id.btn_get_book_list).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    mAdapter.setData(mBookManager.getBookList());
+                    mAdapter.notifyDataSetChanged();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
+```
+### ---END---

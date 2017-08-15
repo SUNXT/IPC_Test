@@ -39,9 +39,11 @@ public class AIDLTestActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_aidltest);
+        //绑定服务
         Intent intent = new Intent(this, BookManagerService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
+        //调用addBook接口
         findViewById(R.id.btn_add_book).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -60,6 +62,7 @@ public class AIDLTestActivity extends AppCompatActivity {
         mAdapter = new BookListAdapter(this);
         mLvBooks.setAdapter(mAdapter);
 
+        //调用getBookList()接口
         findViewById(R.id.btn_get_book_list).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

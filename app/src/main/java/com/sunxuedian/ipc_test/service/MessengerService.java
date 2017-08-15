@@ -31,7 +31,7 @@ public class MessengerService extends Service {
                 case MyConstants.MSG_FROM_CLIENT:
                     String client_msg = msg.getData().getString(MyConstants.CLIENT_MSG);
                     Log.d(Tag, "from client message: " + client_msg);
-                    Messenger client = msg.replyTo;
+                    Messenger client = msg.replyTo;//这是获取到客户端的Messenger对象，对客户端做出回复
                     Message message = Message.obtain(null, MyConstants.MSG_FROM_SERVICE);
                     Bundle data = new Bundle();
                     data.putString(MyConstants.SERVICE_REPLY, "收到信息了，这是回复！");
