@@ -122,7 +122,7 @@ private Messenger mService;
 #### AIDL文件的编写（开发的IDE为Android Studio）
 （1）我们在src/main/java/包名 下新建一个包aidl（注意：这里一定要是aidl，不然后面构建项目会报找不到Book类，这里主要存放您要通过aidl通讯实现数据交换的自定义bean类），新建类Book.java，然后将该类实现Parcelable接口。
 （2）直接在src/main 新建一个aidl文件，系统将自动在main目录下生成一个aidl目录，在该目录下有一个包名为xxx.xxx.aidl（xxx.xxx代表你的包名），里面为你新建的aidl文件。我们先新建一个Book.aidl，该aidl文件的作用为声明我们自定义的Book.java类，然后我们新建一个IBookManager.aidl文件,里面编写接口方法getBookList()和addBook(Book book);注意的是，必须import Book类完整的路径包名。
-![image]()
+![image](https://github.com/SUNXT/IPC_Test/blob/master/新建aidl文件.jpg)
 ##### Book.aidl 用parcelable声明Book类
 ```
 // Book.aidl
@@ -154,7 +154,7 @@ interface IBookManager {
 }
 ```
 （3）构建你的项目，（Make Project）如果没问题的话，应该能构建成功，并在app/build/generated/source目录下找到aidl文件夹，并在aidl/debug中找到对应的包和你定义的IBookManager.java
-![image]()
+![image](https://github.com/SUNXT/IPC_Test/blob/master/构建aidl.jpg)
 
 #### 可以开始编写客户端和服务端的代码了（兴奋）
 
@@ -248,4 +248,5 @@ private IBookManager mBookManager;
 
 
 ```
+### 这样就完成aidl的编写了
 ### ---END---
